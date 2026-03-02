@@ -1,0 +1,7 @@
+bin/
+obj/
+.project
+.settings/
+*.prg
+*.prg.debug.xml
+*.iq
