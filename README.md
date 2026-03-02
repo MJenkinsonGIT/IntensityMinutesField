@@ -1,6 +1,6 @@
-# [App Name]
+# IntensityMinutesField
 
-[One or two sentences describing what this app does and why it exists.]
+A data field for the Garmin Venu 3 that shows intensity minutes earned during the current activity session — broken down into total, moderate, and vigorous — fixing a gap in Garmin's native data field options.
 
 ---
 
@@ -18,6 +18,39 @@ The knowledge base is open source. If you're building Connect IQ apps for the Ve
 
 ---
 
+## What It Displays
+
+```
+      Intensity Mins
+           42
+   Mod           Vig
+    18            12
+```
+
+| Value | Description |
+|-------|-------------|
+| **Total** (large, centre) | Intensity minutes earned this session: `moderate + (vigorous × 2)` |
+| **Mod** (bottom left) | Moderate intensity minutes earned this session |
+| **Vig** (bottom right) | Vigorous intensity minutes earned this session |
+
+All three values reset to zero when a new activity is started and count up from there. Before the activity timer starts, all values show zero.
+
+### Why vigorous counts double
+
+This matches Garmin's own "Intensity Minutes" field behaviour and the WHO physical activity guidelines, which recognise that one minute of vigorous activity provides the same cardiovascular benefit as two minutes of moderate activity. A vigorous minute therefore contributes 2 to your total.
+
+### Why this app exists
+
+The Connect IQ SDK does not expose per-activity intensity minutes directly — it only provides cumulative weekly totals. Garmin's built-in intensity minutes data field shares this limitation. This app works around it by snapshotting the weekly totals the moment the activity timer starts, then subtracting that baseline from the running weekly total to derive what was earned in the current session.
+
+---
+
+## Layout
+
+This field was designed and tested in the **1-of-4 slot** layout — the compact quarter-screen position used when four data fields are displayed simultaneously. It has not been tested in full-screen, half-screen, or other slot configurations and may not display correctly in those layouts.
+
+---
+
 ## Installation
 
 ### Which file should I download?
@@ -26,9 +59,9 @@ Each release includes three files. All three contain the same app — the differ
 
 | File | Size | Best for |
 |------|------|----------|
-| `[AppName]-release.prg` | Smallest | Most users — just install and run |
-| `[AppName]-debug.prg` | ~4× larger | Troubleshooting crashes — includes debug symbols |
-| `[AppName].iq` | Small (7-zip archive) | Developers / advanced users |
+| `IntensityMinutesField-release.prg` | Smallest | Most users — just install and run |
+| `IntensityMinutesField-debug.prg` | ~4× larger | Troubleshooting crashes — includes debug symbols |
+| `IntensityMinutesField.iq` | Small (7-zip archive) | Developers / advanced users |
 
 **Release `.prg`** is a fully optimised build with debug symbols and logging stripped out. This is what you want if you just want to use the app.
 
@@ -45,18 +78,21 @@ Each release includes three files. All three contain the same app — the differ
 4. Press the **Back button** on the watch — it will show "Verifying Apps"
 5. Unplug once the watch finishes
 
-**Option B — extracting from the `.iq` file**
+**Option B — debug build (for crash analysis)**
+1. Download both `IntensityMinutesField-debug.prg` and `IntensityMinutesField.prg.debug.xml` — keep them together in the same folder on your PC
+2. Copy `IntensityMinutesField-debug.prg` to `GARMIN\APPS\` on the watch
+3. Press the **Back button** on the watch — it will show "Verifying Apps"
+4. If the app crashes, retrieve `GARMIN\APPS\LOGS\CIQ_LOG.YAML` from the watch and cross-reference it against the `.prg.debug.xml` to identify the crash location
 
-Garmin `.iq` files are 7-zip archives, not standard ZIP. Windows' built-in extractor cannot open them — you need **[7-Zip](https://www.7-zip.org/)** (free).
-
-1. Install 7-Zip if you don't have it
-2. Right-click the `.iq` file → **7-Zip → Extract Here**
+**Option C — extracting from the `.iq` file**
+1. Rename `IntensityMinutesField.iq` to `IntensityMinutesField.7z`
+2. Right-click it → **Extract All** (Windows 11 22H2+) or use [7-Zip](https://www.7-zip.org/) on older Windows
 3. Inside the extracted folder, find the `.prg` file inside the device ID subfolder
 4. Copy the `.prg` to `GARMIN\APPS\` on the watch
 5. Press the **Back button** on the watch — it will show "Verifying Apps"
 6. Unplug once the watch finishes
 
-To add the field to an activity data screen: start an activity, long-press the lower button, navigate to **Data Screens**, and add the field to a slot.
+To add the field to an activity data screen: start an activity, long-press the lower button, navigate to **Data Screens**, and add the field to a slot. For best results, add it to a screen configured for **4 data fields** and place it in any one of the four positions.
 
 > **To uninstall:** Use Garmin Express. Sideloaded apps cannot be removed directly from the watch or the Garmin Connect phone app.
 
@@ -73,4 +109,6 @@ Compatibility with other devices has not been tested.
 
 ## Notes
 
-[Any app-specific notes, known limitations, or usage tips go here.]
+- Values show zero before the activity timer starts. This is intentional — the baseline is captured at timer start, so there is nothing to display until then.
+- If you pause and resume an activity, the baseline is not reset. The totals continue accumulating from the original start.
+- Intensity minutes update on the watch's standard data field refresh cycle, not in real time. There may be a short lag before a completed vigorous effort is reflected.
